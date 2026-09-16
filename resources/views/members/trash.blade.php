@@ -9,6 +9,7 @@
 </head>
 
 <body class="bg-slate-100 text-slate-800">
+    <x-toast />
     <div class="mx-auto max-w-5xl px-4 py-10">
         <div class="mb-6 flex items-center justify-between">
             <div>

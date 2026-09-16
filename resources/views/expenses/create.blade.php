@@ -9,6 +9,8 @@
 </head>
 
 <body class="bg-slate-100 text-slate-800">
+    <x-toast />
+
     <div class="mx-auto max-w-4xl px-4 py-10">
         <div class="mb-6 flex items-center justify-between">
             <div>
@@ -142,10 +144,11 @@
                 if (Math.abs(total - amount) > 0.01) {
                     event.preventDefault();
                     updateAllocation();
-                    alert('সব selected member amount-এর মোট অবশ্যই Total Amount-এর সমান হতে হবে।');
+                    window.toast.error('সব selected member amount-এর মোট অবশ্যই Total Amount-এর সমান হতে হবে।', 'অ্যালোকেশন মেলেনি');
                 }
             }
         });
+
         distributeAmount();
     </script>
 </body>

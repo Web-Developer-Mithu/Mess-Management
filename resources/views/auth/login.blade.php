@@ -4,6 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" href="{{ asset('icons/mess-manager.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('icons/mess-manager.svg') }}">
     <title>Login - Mess Manager</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -208,6 +215,7 @@
 
 <body
     class="min-h-screen bg-neutral-950 text-neutral-200 antialiased relative overflow-hidden flex items-center justify-center selection:bg-red-500 selection:text-white">
+    <x-toast />
 
     <!-- Background Fire & Smoke Effects -->
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">

@@ -26,15 +26,28 @@ class LoginController extends Controller
             $user = Auth::user();
 
             if ($user && $user->isSuperAdmin()) {
-                return redirect()->intended(route('superadmin.dashboard'));
+                return redirect()->intended(route('superadmin.dashboard'))->with('success', 'Super Admin হিসেবে স্বাগতম!');
             }
 
-            return redirect()->intended(route('dashboard'));
+            if ($user?->mess && $user->mess->status !== 'active') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $inactiveMsg = $user->mess->inactive_message
+                    ?: 'এই Mess বর্তমানে inactive। Super Admin activate করলে আবার login করতে পারবেন।';
+
+                return back()->withErrors([
+                    'email' => $inactiveMsg,
+                ])->with('error', $inactiveMsg)->onlyInput('email');
+            }
+
+            return redirect()->intended(route('dashboard'))->with('success', 'সফলভাবে লগইন হয়েছে। স্বাগতম!');
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        ])->with('error', 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।')->onlyInput('email');
     }
 
     public function logout(Request $request)
@@ -43,7 +56,7 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/login')->with('info', 'সফলভাবে লগআউট হয়েছেন।');
     }
 }
 

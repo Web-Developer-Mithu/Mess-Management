@@ -10,6 +10,8 @@ class Mess extends Model
     protected $fillable = [
         'name',
         'address',
+        'status',
+        'inactive_message',
         'logo',
         'balance_alert_threshold',
         'balance_alert_comment',

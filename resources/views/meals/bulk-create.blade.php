@@ -20,13 +20,8 @@
                 class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Back to Dashboard</a>
         </div>
 
-        @if ($errors->any())
-            <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
+        <x-toast />
+
 
         <form method="POST" action="{{ route('meals.bulk.store') }}" class="space-y-5 rounded-2xl bg-white p-6 shadow">
             @csrf

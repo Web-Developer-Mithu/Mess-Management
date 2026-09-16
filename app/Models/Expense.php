@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Models\Traits\BelongsToMess;
 
 class Expense extends Model
 {
-    use HasFactory, BelongsToMess;
+    use HasFactory, BelongsToMess, SoftDeletes;
 
     protected $fillable = [
         'date',
@@ -37,6 +38,10 @@ class Expense extends Model
 
         static::deleted(function ($model) {
             ActivityLog::record($model, 'deleted');
+        });
+
+        static::restored(function ($model) {
+            ActivityLog::record($model, 'restored');
         });
     }
 

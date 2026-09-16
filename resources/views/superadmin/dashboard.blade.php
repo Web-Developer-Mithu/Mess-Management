@@ -59,6 +59,17 @@
                         </svg>
                         <span>Warning</span>
                     </a>
+
+                    <a href="{{ route('superadmin.site.settings') }}"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-3.5 font-semibold text-slate-300 transition-all hover:bg-white/5 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Site Settings</span>
+                    </a>
                 </nav>
 
                 <!-- Admin Profile Bottom -->
@@ -74,6 +85,9 @@
                                 <div class="text-xs text-slate-400 truncate">{{ auth()->user()->email }}</div>
                             </div>
                         </div>
+                        <a href="{{ route('account.password.edit') }}"
+                            class="mt-3 block text-center text-xs font-bold text-indigo-300 hover:text-white">Change
+                            Super Admin Password</a>
                         <form method="POST" action="{{ route('logout') }}" class="mt-3">
                             @csrf
                             <button type="submit"
@@ -114,29 +128,8 @@
             </div>
 
             <main class="flex-1 overflow-y-auto p-6 lg:p-8">
-                @if (session('success'))
-                    <div
-                        class="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold flex items-center gap-3">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {{ session('success') }}
-                    </div>
-                @endif
-                @if ($errors->any())
-                    <div
-                        class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 font-semibold flex flex-col gap-2">
-                        @foreach ($errors->all() as $err)
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                {{ $err }}
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+                <x-toast />
+
 
                 <!-- Header Section -->
                 <div
@@ -205,6 +198,8 @@
                             <div class="flex items-start justify-between mb-5 relative z-10">
                                 <div class="flex-1 min-w-0">
                                     <h3 class="text-xl font-bold text-slate-800 truncate">{{ $mess->name }}</h3>
+                                    <span
+                                        class="mt-1 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Active</span>
                                     <p class="text-sm text-slate-500 mt-0.5 truncate">
                                         <svg class="w-3.5 h-3.5 inline mr-1 -mt-0.5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -261,6 +256,8 @@
                                                 {{ $manager->name }}</div>
                                             <div class="text-xs text-slate-500 truncate">{{ $manager->email }}</div>
                                         </div>
+                                        <a href="{{ route('superadmin.users.password.edit', $manager) }}"
+                                            class="rounded-lg border border-indigo-200 bg-white px-2 py-1 text-[10px] font-bold text-indigo-700 hover:bg-indigo-50">Password</a>
                                     </div>
                                 </div>
                             @endif
@@ -290,18 +287,17 @@
                                     </form>
                                 @endif
 
-                                <form action="{{ route('superadmin.messes.delete', $mess->id) }}" method="POST"
-                                    onsubmit="return confirm('সত্যিই কি {{ $mess->name }} এবং সব ডেটা মুছে ফেলতে চান?')">
+                                <form action="{{ route('superadmin.messes.deactivate', $mess) }}" method="POST"
+                                    onsubmit="return confirm('{{ $mess->name }} inactive করবেন? সব data সংরক্ষিত থাকবে।')">
                                     @csrf
-                                    @method('DELETE')
-                                    <button id="delete-mess-{{ $mess->id }}" type="submit"
+                                    <button id="deactivate-mess-{{ $mess->id }}" type="submit"
                                         class="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-100 transition-all">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        সম্পূর্ণ Mess Data Delete করুন
+                                        Mess Inactive করুন
                                     </button>
                                 </form>
                             </div>
@@ -323,6 +319,41 @@
                         </div>
                     @endforelse
                 </div>
+
+                @if ($inactiveMesses->isNotEmpty())
+                    <section class="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900">Inactive Messes</h2>
+                                <p class="mt-1 text-sm text-slate-500">Inactive করলে কোনো member, meal, expense বা
+                                    payment data মুছে যায় না।</p>
+                            </div>
+                            <span
+                                class="rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{{ $inactiveMesses->count() }}
+                                Inactive</span>
+                        </div>
+                        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                            @foreach ($inactiveMesses as $inactiveMess)
+                                <div
+                                    class="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+                                    <div class="min-w-0">
+                                        <p class="truncate font-black text-red-900">{{ $inactiveMess->name }}</p>
+                                        <p class="mt-1 text-xs text-red-700">{{ $inactiveMess->members_count }}
+                                            members · Inactive</p>
+                                    </div>
+                                    <form action="{{ route('superadmin.messes.activate', $inactiveMess) }}"
+                                        method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-500">Activate</button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
+                <x-developer-card />
             </main>
         </div>
     </div>

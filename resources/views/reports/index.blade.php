@@ -9,6 +9,7 @@
 </head>
 
 <body class="bg-slate-100 text-slate-800">
+    <x-toast />
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -45,6 +46,18 @@
                     <label class="mb-1 block text-xs font-bold text-slate-500">Month</label>
                     <input type="month" name="month" value="{{ request('month', substr($from, 0, 7)) }}"
                         class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-bold text-slate-500">Member</label>
+                    <select name="member_id" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                        <option value="">All Members</option>
+                        @foreach ($memberOptions as $memberOption)
+                            <option value="{{ $memberOption->id }}"
+                                {{ request('member_id') == $memberOption->id ? 'selected' : '' }}>
+                                {{ $memberOption->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <button
                     class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-500">Show
@@ -187,6 +200,111 @@
             না;
             এটি শুধু Net Deposit Balance থেকে বাদ হয়। Meal Cost meal rate তৈরি করে।
         </div>
+
+        <section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-sky-200">
+            <div class="border-b border-sky-200 bg-sky-100 px-5 py-4">
+                <h2 class="text-xl font-black text-sky-950">Expense Entry List</h2>
+                <p class="mt-1 text-sm text-sky-800">এই রিপোর্টের জন্য যোগ হওয়া সব খরচ দেখুন এবং প্রয়োজন হলে
+                    Edit/Delete করুন</p>
+            </div>
+
+            <div class="overflow-x-auto p-5">
+                <table class="min-w-[760px] w-full border-collapse text-sm">
+                    <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
+                        <tr>
+                            <th class="border border-slate-200 px-3 py-3">Date</th>
+                            <th class="border border-slate-200 px-3 py-3">Category</th>
+                            <th class="border border-slate-200 px-3 py-3">Type</th>
+                            <th class="border border-slate-200 px-3 py-3">Vendor</th>
+                            <th class="border border-slate-200 px-3 py-3">Note</th>
+                            <th class="border border-slate-200 px-3 py-3 text-right">Amount</th>
+                            <th class="border border-slate-200 px-3 py-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($expenseEntries as $entry)
+                            <tr class="hover:bg-sky-50">
+                                <td class="border border-slate-200 px-3 py-3">{{ $entry['date'] }}</td>
+                                <td class="border border-slate-200 px-3 py-3 font-bold text-slate-800">
+                                    {{ $entry['category'] }}</td>
+                                <td class="border border-slate-200 px-3 py-3">
+                                    <span
+                                        class="rounded-full px-2 py-1 text-[10px] font-black uppercase {{ $entry['type'] === 'fixed' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700' }}">
+                                        {{ $entry['type'] === 'fixed' ? 'Shared Cost' : 'Meal Cost' }}
+                                    </span>
+                                </td>
+                                <td class="border border-slate-200 px-3 py-3">{{ $entry['vendor'] ?: '—' }}</td>
+                                <td class="border border-slate-200 px-3 py-3">{{ $entry['note'] ?: '—' }}</td>
+                                <td class="border border-slate-200 px-3 py-3 text-right font-black text-slate-800">
+                                    ৳{{ number_format($entry['amount'], 2) }}</td>
+                                <td class="border border-slate-200 px-3 py-3">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="{{ route('expenses.edit', $entry['id']) }}"
+                                            class="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Edit</a>
+                                        <form action="{{ route('expenses.destroy', $entry['id']) }}" method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this expense?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-3 py-8 text-center text-slate-500">এই সময়ের কোনো খরচ
+                                    entry নেই।</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-emerald-200">
+            <div class="border-b border-emerald-200 bg-emerald-100 px-5 py-4">
+                <h2 class="text-xl font-black text-emerald-950">Payment Statement</h2>
+                <p class="mt-1 text-sm text-emerald-800">
+                    {{ $selectedMember ? $selectedMember->name . ' এর statement' : 'সব সদস্যের payment statement' }}
+                    ({{ $from }} থেকে {{ $to }})
+                </p>
+            </div>
+
+            <div class="overflow-x-auto p-5">
+                <table class="min-w-[760px] w-full border-collapse text-sm">
+                    <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
+                        <tr>
+                            <th class="border border-slate-200 px-3 py-3">Date</th>
+                            <th class="border border-slate-200 px-3 py-3">Member</th>
+                            <th class="border border-slate-200 px-3 py-3">Payment Type</th>
+                            <th class="border border-slate-200 px-3 py-3">Note</th>
+                            <th class="border border-slate-200 px-3 py-3 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($paymentEntries as $entry)
+                            <tr class="hover:bg-emerald-50">
+                                <td class="border border-slate-200 px-3 py-3">{{ $entry['date'] }}</td>
+                                <td class="border border-slate-200 px-3 py-3 font-bold text-slate-800">
+                                    {{ $entry['member_name'] }}</td>
+                                <td class="border border-slate-200 px-3 py-3 uppercase text-emerald-700">
+                                    {{ $entry['payment_type'] }}</td>
+                                <td class="border border-slate-200 px-3 py-3">{{ $entry['note'] ?: '—' }}</td>
+                                <td class="border border-slate-200 px-3 py-3 text-right font-black text-emerald-800">
+                                    ৳{{ number_format($entry['amount'], 2) }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-3 py-8 text-center text-slate-500">এই সময়ের payment
+                                    statement পাওয়া যায়নি।</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-orange-200">
             <div class="border-b border-orange-200 bg-orange-100 px-5 py-4">

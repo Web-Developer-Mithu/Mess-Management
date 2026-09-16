@@ -19,13 +19,8 @@
                 class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Back</a>
         </div>
 
-        @if ($errors->any())
-            <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-                @foreach ($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
+        <x-toast />
+
 
         <form method="POST" action="{{ route('superadmin.messes.update', $mess) }}" enctype="multipart/form-data"
             class="space-y-5 rounded-2xl bg-white p-6 shadow">
@@ -50,6 +45,20 @@
                 <label class="mb-1 block text-sm font-semibold">Address</label>
                 <input type="text" name="address" value="{{ old('address', $mess->address) }}"
                     class="w-full rounded-lg border border-slate-300 px-3 py-2">
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-semibold">Mess Status</label>
+                <select name="status" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="active" @selected(old('status', $mess->status) === 'active')>Active</option>
+                    <option value="inactive" @selected(old('status', $mess->status) === 'inactive')>Inactive</option>
+                </select>
+                <p class="mt-1 text-xs text-slate-500">Inactive করলে data থাকবে, শুধু manager login ও কাজ বন্ধ থাকবে।
+                </p>
+                <label class="mb-1 mt-4 block text-sm font-semibold">Inactive Warning Message</label>
+                <textarea name="inactive_message" rows="2" maxlength="1000"
+                    placeholder="যেমন: Mess সাময়িকভাবে বন্ধ আছে। Super Admin activate করার পর কাজ শুরু হবে।"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2">{{ old('inactive_message', $mess->inactive_message) }}</textarea>
             </div>
 
             <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">

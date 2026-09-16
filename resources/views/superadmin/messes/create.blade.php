@@ -61,20 +61,8 @@
             </header>
 
             <main class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
-                @if ($errors->any())
-                    <div
-                        class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 font-semibold flex flex-col gap-2">
-                        @foreach ($errors->all() as $err)
-                            <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                {{ $err }}
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+                <x-toast />
+
 
                 <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-200/60">
                     <form action="{{ route('superadmin.messes.store') }}" method="POST" enctype="multipart/form-data">

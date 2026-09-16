@@ -4,6 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" href="{{ asset('icons/mess-manager.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('icons/mess-manager.svg') }}">
     <title>Mess Manager Admin</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -229,6 +235,54 @@
 
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
 
+    <x-toast />
+
+    @if (session('impersonation_popup'))
+        <div id="impersonation-popup"
+            class="fixed inset-0 z-[99990] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+            <div class="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-white/60">
+                <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 px-6 pb-8 pt-7 text-white">
+                    <button type="button" id="close-impersonation-popup" aria-label="Close popup"
+                        class="absolute right-4 top-4 rounded-lg p-2 text-white/80 transition hover:bg-white/20 hover:text-white">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-lg">
+                        👁</div>
+                    <p class="mt-5 text-xs font-black uppercase tracking-[0.22em] text-white/75">Super Admin View Mode
+                    </p>
+                    <h2 class="mt-1 text-2xl font-black">Mess-এ প্রবেশ করেছেন</h2>
+                </div>
+                <div class="space-y-3 px-6 py-6 text-slate-700">
+                    <p class="text-sm leading-6">আপনি এখন
+                        <strong>{{ session('impersonation_popup.mess_name') }}</strong> mess-এর dashboard দেখছেন।</p>
+                    <div class="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                        <strong>Manager:</strong> {{ session('impersonation_popup.manager_name') }}
+                    </div>
+                    <p class="text-xs text-slate-500">কাজ শেষে উপরের “Return to Super Admin” button ব্যবহার করে ফিরে
+                        আসুন।</p>
+                    <button type="button" id="continue-impersonation"
+                        class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-600">Continue
+                        to Dashboard</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            (() => {
+                const popup = document.getElementById('impersonation-popup');
+                const close = () => popup?.remove();
+                document.getElementById('close-impersonation-popup')?.addEventListener('click', close);
+                document.getElementById('continue-impersonation')?.addEventListener('click', close);
+                popup?.addEventListener('click', event => {
+                    if (event.target === popup) close();
+                });
+            })();
+        </script>
+    @endif
+
+
     {{-- Impersonation Banner --}}
     @if (session('impersonate_by'))
         <div
@@ -282,6 +336,11 @@
                     </div>
                 </div>
 
+                @php
+                    $todayDate = now()->toDateString();
+                    $weekStart = now()->startOfWeek()->toDateString();
+                    $currentMonth = now()->format('Y-m');
+                @endphp
                 <nav class="flex-1 space-y-1.5 p-4 overflow-y-auto custom-scrollbar">
                     <a href="{{ route('dashboard') }}"
                         class="group flex items-center gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3.5 font-semibold text-emerald-400 shadow-inner transition-all hover:bg-emerald-500/20">
@@ -290,6 +349,24 @@
                                 d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                         </svg>
                         <span>Dashboard</span>
+                    </a>
+                    <a href="{{ route('mess.settings') }}"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-3.5 text-slate-400 transition-all hover:bg-white/5 hover:text-white">
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition-colors"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4 4h8m-8 4h5" />
+                        </svg>
+                        <span>Badge Setup</span>
+                    </a>
+                    <a href="{{ route('menus.weekly') }}"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-3.5 text-slate-400 transition-all hover:bg-white/5 hover:text-white">
+                        <svg class="w-5 h-5 text-slate-500 group-hover:text-emerald-400 transition-colors"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3M5 11h14M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+                        </svg>
+                        <span>Weekly Menu</span>
                     </a>
                     <a href="{{ route('members.create') }}"
                         class="group flex items-center gap-3 rounded-xl px-4 py-3.5 text-slate-400 transition-all hover:bg-white/5 hover:text-white">
@@ -327,6 +404,38 @@
                         </svg>
                         <span>Payments</span>
                     </a>
+
+                    <div class="rounded-2xl border border-slate-700 bg-slate-800/50 p-2.5">
+                        <div class="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                            Reports
+                        </div>
+                        <div class="space-y-1.5">
+                            <a href="{{ route('reports.expenses', ['type' => 'monthly', 'month' => $currentMonth]) }}"
+                                class="flex items-center justify-between rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-200 transition hover:bg-orange-500/20 hover:text-white">
+                                <span>Expense Report</span>
+                                <span
+                                    class="rounded bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-200">Edit</span>
+                            </a>
+                            <a href="{{ route('reports.index', ['type' => 'daily', 'date' => $todayDate]) }}"
+                                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700/70 hover:text-white">
+                                <span>Daily Report</span>
+                                <span
+                                    class="rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-bold text-sky-300">Date</span>
+                            </a>
+                            <a href="{{ route('reports.index', ['type' => 'weekly', 'week_start' => $weekStart]) }}"
+                                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700/70 hover:text-white">
+                                <span>Weekly Report</span>
+                                <span
+                                    class="rounded bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-bold text-violet-300">Week</span>
+                            </a>
+                            <a href="{{ route('reports.index', ['type' => 'monthly', 'month' => $currentMonth]) }}"
+                                class="flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700/70 hover:text-white">
+                                <span>Monthly Report</span>
+                                <span
+                                    class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">Month</span>
+                            </a>
+                        </div>
+                    </div>
                 </nav>
 
                 <div class="p-4 border-t border-white/10">
@@ -374,23 +483,31 @@
                                 </svg>
                             </button>
                         </form>
+                        <a href="{{ route('account.password.edit') }}"
+                            class="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
+                            title="Change password">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </a>
                     </div>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-6 lg:p-8 custom-scrollbar">
+            <main class="flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar">
 
                 <!-- Page Header -->
                 <div
-                    class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-200/60 relative overflow-hidden">
+                    class="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 relative overflow-hidden">
                     <div
                         class="absolute right-0 top-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2">
                     </div>
                     <div>
                         <p class="text-xs font-bold uppercase tracking-[0.25em] text-emerald-600 mb-1">
                             Summary</p>
-                        <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">
                             {{ auth()->user()->mess?->name ?? 'Mess Dashboard' }}</h1>
                     </div>
 
@@ -403,104 +520,348 @@
                     </form>
                 </div>
 
-                <div class="mb-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                @if ($menuOverviewVisible)
+                    <section class="mb-4 grid gap-3 md:grid-cols-2">
+                        <div
+                            class="relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50 p-3 shadow-sm">
+                            <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-emerald-100"></div>
+                            <div class="relative flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">আজকের
+                                        মেনু
+                                    </p>
+                                    <h2 class="mt-1 text-base font-black text-slate-900">
+                                        {{ $menuTodayDate->translatedFormat('l, d M') }}</h2>
+                                    <p class="mt-2 whitespace-pre-line text-xs font-semibold leading-5 text-slate-700">
+                                        {{ $menuToday?->menu ?: 'মেনু সেট করা হয়নি।' }}</p>
+                                    @if ($menuToday?->market_person || $menuToday?->market_condition)
+                                        <div class="mt-2 border-t border-emerald-200 pt-2 text-xs text-slate-700">
+                                            <p><strong>বাজার:</strong>
+                                                {{ $menuToday?->market_person ?: 'নির্ধারিত নয়' }}</p>
+                                            @if ($menuToday?->market_condition)
+                                                <p class="mt-1"><strong>শর্ত:</strong>
+                                                    {{ $menuToday->market_condition }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                <span class="rounded-xl bg-white px-3 py-2 text-xl shadow-sm">🍽</span>
+                            </div>
+                        </div>
+                        <div
+                            class="relative overflow-hidden rounded-2xl border border-sky-200 bg-sky-50 p-3 shadow-sm">
+                            <div class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-sky-100"></div>
+                            <div class="relative flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-[0.2em] text-sky-700">আগামীকালের
+                                        মেনু
+                                    </p>
+                                    <h2 class="mt-1 text-base font-black text-slate-900">
+                                        {{ $menuTomorrowDate->translatedFormat('l, d M') }}</h2>
+                                    <p class="mt-2 whitespace-pre-line text-xs font-semibold leading-5 text-slate-700">
+                                        {{ $menuTomorrow?->menu ?: 'মেনু সেট করা হয়নি।' }}</p>
+                                    @if ($menuTomorrow?->market_person || $menuTomorrow?->market_condition)
+                                        <div class="mt-2 border-t border-sky-200 pt-2 text-xs text-slate-700">
+                                            <p><strong>বাজার:</strong>
+                                                {{ $menuTomorrow?->market_person ?: 'নির্ধারিত নয়' }}</p>
+                                            @if ($menuTomorrow?->market_condition)
+                                                <p class="mt-1"><strong>শর্ত:</strong>
+                                                    {{ $menuTomorrow->market_condition }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                                <span class="rounded-xl bg-white px-3 py-2 text-xl shadow-sm">🍴</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 -mt-1">
+                            <a href="{{ route('menus.weekly') }}"
+                                class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700">Edit
+                                Weekly Menu</a>
+                        </div>
+                    </section>
+                @endif
+
+                <div class="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     <div
-                        class="rounded-3xl bg-white p-6 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-orange-300 transition-all">
+                        class="rounded-2xl bg-white p-3 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-orange-300 transition-all">
                         <div
                             class="absolute right-0 top-0 w-24 h-24 bg-orange-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110">
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
                             <div
-                                class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xl">
+                                class="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg">
                                 ৳
                             </div>
                             <div>
                                 <div class="text-sm font-semibold text-slate-500">Total Expense</div>
-                                <div class="mt-1 text-2xl font-black text-slate-900 tracking-tight">
+                                <div class="mt-1 text-xl font-black text-slate-900 tracking-tight">
                                     {{ number_format($totalExpenses, 2) }}</div>
                             </div>
                         </div>
                     </div>
                     <div
-                        class="rounded-3xl bg-white p-6 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-sky-300 transition-all">
+                        class="rounded-2xl bg-white p-3 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-sky-300 transition-all">
                         <div
                             class="absolute right-0 top-0 w-24 h-24 bg-sky-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110">
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
                             <div
-                                class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-xl">
+                                class="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-lg">
                                 🍽️
                             </div>
                             <div>
                                 <div class="text-sm font-semibold text-slate-500">Total Meals</div>
-                                <div class="mt-1 text-2xl font-black text-slate-900 tracking-tight">
+                                <div class="mt-1 text-xl font-black text-slate-900 tracking-tight">
                                     {{ $totalMeals }}</div>
                             </div>
                         </div>
                     </div>
                     <div
-                        class="rounded-3xl bg-white p-6 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-emerald-300 transition-all">
+                        class="rounded-2xl bg-white p-3 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-emerald-300 transition-all">
                         <div
                             class="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110">
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
                             <div
-                                class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xl">
+                                class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
                                 💳
                             </div>
                             <div>
                                 <div class="text-sm font-semibold text-slate-500">Total Payment</div>
-                                <div class="mt-1 text-2xl font-black text-slate-900 tracking-tight">
+                                <div class="mt-1 text-xl font-black text-slate-900 tracking-tight">
                                     {{ number_format($totalPayments, 2) }}</div>
                             </div>
                         </div>
                     </div>
                     <div
-                        class="rounded-3xl bg-white p-6 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-indigo-300 transition-all">
+                        class="rounded-2xl bg-white p-3 shadow-sm border border-slate-200/60 relative overflow-hidden group hover:border-indigo-300 transition-all">
                         <div
                             class="absolute right-0 top-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 transition-transform group-hover:scale-110">
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
                             <div
-                                class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xl">
+                                class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">
                                 📊
                             </div>
                             <div>
                                 <div class="text-sm font-semibold text-slate-500">Meal Rate</div>
-                                <div class="mt-1 text-2xl font-black text-slate-900 tracking-tight">
+                                <div class="mt-1 text-xl font-black text-slate-900 tracking-tight">
                                     ৳{{ number_format($mealRate, 2) }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                @if ($balanceAlertMembers->isNotEmpty() && $balanceAlertComment)
-                    <div class="warning-pulse mb-8 rounded-3xl border border-amber-300 bg-amber-50 p-5 shadow-sm">
-                        <div class="flex items-start gap-3">
+                {{-- Month-over-Month Meal Cost Comparison & Analysis --}}
+                <div
+                    class="mb-4 rounded-2xl border border-indigo-100 bg-gradient-to-br from-white via-indigo-50/30 to-sky-50/40 p-4 shadow-sm ring-1 ring-slate-200/70 relative overflow-hidden">
+                    <div class="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-indigo-200/20 blur-2xl"
+                        aria-hidden="true"></div>
+                    <div class="pointer-events-none absolute -left-12 -bottom-12 h-40 w-40 rounded-full bg-emerald-200/20 blur-2xl"
+                        aria-hidden="true"></div>
+
+                    <div
+                        class="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-indigo-100/80 pb-5">
+                        <div class="flex items-start gap-3.5">
                             <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-xl">
-                                !</div>
-                            <div class="min-w-0">
-                                <h2 class="font-black text-amber-950">Warning: Member Balance Alert</h2>
-                                <p class="mt-1 text-sm font-semibold text-amber-900">{{ $balanceAlertComment }}</p>
-                                <p class="mt-2 text-xs text-amber-800">
-                                    নিচের {{ $balanceAlertMembers->count() }} জন সদস্যের balance
-                                    ৳{{ number_format((float) auth()->user()->mess->balance_alert_threshold, 2) }}-এর
-                                    নিচে:
-                                </p>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    @foreach ($balanceAlertMembers as $alertMember)
-                                        <span
-                                            class="rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-200">
-                                            {{ $alertMember['name'] }}:
-                                            ৳{{ number_format($alertMember['balance'], 2) }}
-                                        </span>
-                                    @endforeach
+                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white font-black text-xl shadow-md shadow-indigo-600/20">
+                                📈
+                            </div>
+                            <div>
+                                <div
+                                    class="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-indigo-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-indigo-600"></span>
+                                    মাসিক তুলনামূলক এনালাইসিস
                                 </div>
+                                <h3 class="mt-1 text-lg font-black text-slate-900 tracking-tight">
+                                    মিল খরচের তুলনা: {{ $mealComparison['currentMonthName'] }} বনাম
+                                    {{ $mealComparison['prevMonthName'] }}
+                                </h3>
+                            </div>
+                        </div>
+
+                        @if ($mealComparison['hasPrevData'])
+                            @if ($mealComparison['mealExpenseDiff'] < 0)
+                                <div
+                                    class="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 shadow-sm">
+                                    <span
+                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white text-xs font-black">↓</span>
+                                    <div>
+                                        <span class="block text-xs font-semibold text-emerald-600">আগের মাসের
+                                            চেয়ে</span>
+                                        <span
+                                            class="text-emerald-900 font-black">৳{{ number_format(abs($mealComparison['mealExpenseDiff']), 2) }}
+                                            কম ({{ abs($mealComparison['mealExpensePct']) }}% সাশ্রয়)</span>
+                                    </div>
+                                </div>
+                            @elseif ($mealComparison['mealExpenseDiff'] > 0)
+                                <div
+                                    class="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-bold text-rose-800 shadow-sm">
+                                    <span
+                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-white text-xs font-black">↑</span>
+                                    <div>
+                                        <span class="block text-xs font-semibold text-rose-600">আগের মাসের চেয়ে</span>
+                                        <span
+                                            class="text-rose-900 font-black">৳{{ number_format($mealComparison['mealExpenseDiff'], 2) }}
+                                            বেশি (+{{ abs($mealComparison['mealExpensePct']) }}%)</span>
+                                    </div>
+                                </div>
+                            @else
+                                <div
+                                    class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
+                                    <span>⚖️</span>
+                                    <span>পূর্ববর্তী মাসের সমান খরচ</span>
+                                </div>
+                            @endif
+                        @else
+                            <div
+                                class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500">
+                                <span>ℹ️</span>
+                                <span>পূর্ববর্তী মাসের ডেটা পাওয়া যায়নি</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+                        {{-- 1. Total Meal Expense Comparison --}}
+                        <div class="rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">মিল খরচ
+                                    (Grocery/Bazaar)</span>
+                                <span
+                                    class="rounded-md bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">খাত</span>
+                            </div>
+                            <div class="mt-2 flex items-baseline justify-between gap-2">
+                                <div>
+                                    <p class="text-xs text-slate-400 font-semibold">চলতি মাস</p>
+                                    <p class="text-xl font-black text-slate-900">
+                                        ৳{{ number_format($mealComparison['currentMealExpense'], 2) }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400 font-semibold">পূর্বের মাস</p>
+                                    <p class="text-sm font-bold text-slate-600">
+                                        ৳{{ number_format($mealComparison['prevMealExpense'], 2) }}</p>
+                                </div>
+                            </div>
+                            <div
+                                class="mt-3 border-t border-slate-100 pt-2 flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-500">পার্থক্য:</span>
+                                @if ($mealComparison['hasPrevData'])
+                                    <span
+                                        class="{{ $mealComparison['mealExpenseDiff'] <= 0 ? 'text-emerald-700 font-black' : 'text-rose-700 font-black' }}">
+                                        {{ $mealComparison['mealExpenseDiff'] > 0 ? '+' : '' }}৳{{ number_format($mealComparison['mealExpenseDiff'], 2) }}
+                                        ({{ $mealComparison['mealExpenseDiff'] > 0 ? 'বেশি' : ($mealComparison['mealExpenseDiff'] < 0 ? 'কম' : 'সমান') }})
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 2. Meal Rate Comparison --}}
+                        <div class="rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">মিল রেট (Per
+                                    Meal Rate)</span>
+                                <span
+                                    class="rounded-md bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700">হার</span>
+                            </div>
+                            <div class="mt-2 flex items-baseline justify-between gap-2">
+                                <div>
+                                    <p class="text-xs text-slate-400 font-semibold">চলতি মাস</p>
+                                    <p class="text-xl font-black text-slate-900">
+                                        ৳{{ number_format($mealComparison['currentMealRate'], 2) }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400 font-semibold">পূর্বের মাস</p>
+                                    <p class="text-sm font-bold text-slate-600">
+                                        ৳{{ number_format($mealComparison['prevMealRate'], 2) }}</p>
+                                </div>
+                            </div>
+                            <div
+                                class="mt-3 border-t border-slate-100 pt-2 flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-500">পার্থক্য:</span>
+                                @if ($mealComparison['hasPrevData'])
+                                    <span
+                                        class="{{ $mealComparison['mealRateDiff'] <= 0 ? 'text-emerald-700 font-black' : 'text-rose-700 font-black' }}">
+                                        {{ $mealComparison['mealRateDiff'] > 0 ? '+' : '' }}৳{{ number_format($mealComparison['mealRateDiff'], 2) }}
+                                        ({{ $mealComparison['mealRateDiff'] > 0 ? 'বেশি' : ($mealComparison['mealRateDiff'] < 0 ? 'সাশ্রয়ী' : 'সমান') }})
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 3. Total Meals Comparison --}}
+                        <div class="rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">মোট মিল সংখ্যা
+                                    (Total Meals)</span>
+                                <span
+                                    class="rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-700">সংখ্যা</span>
+                            </div>
+                            <div class="mt-2 flex items-baseline justify-between gap-2">
+                                <div>
+                                    <p class="text-xs text-slate-400 font-semibold">চলতি মাস</p>
+                                    <p class="text-xl font-black text-slate-900">
+                                        {{ number_format($mealComparison['currentTotalMeals'], 1) }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-slate-400 font-semibold">পূর্বের মাস</p>
+                                    <p class="text-sm font-bold text-slate-600">
+                                        {{ number_format($mealComparison['prevTotalMeals'], 1) }}</p>
+                                </div>
+                            </div>
+                            <div
+                                class="mt-3 border-t border-slate-100 pt-2 flex items-center justify-between text-xs font-semibold">
+                                <span class="text-slate-500">পার্থক্য:</span>
+                                @if ($mealComparison['hasPrevData'])
+                                    <span class="text-slate-700 font-black">
+                                        {{ $mealComparison['totalMealsDiff'] > 0 ? '+' : '' }}{{ number_format($mealComparison['totalMealsDiff'], 1) }}
+                                        টি
+                                        ({{ $mealComparison['totalMealsDiff'] > 0 ? 'বেশি' : ($mealComparison['totalMealsDiff'] < 0 ? 'কম' : 'সমান') }})
+                                    </span>
+                                @else
+                                    <span class="text-slate-400">—</span>
+                                @endif
                             </div>
                         </div>
                     </div>
-                @endif
+
+                    {{-- Smart Insight Bar --}}
+                    <div
+                        class="mt-4 rounded-xl border border-indigo-200/60 bg-white/80 p-3.5 text-xs text-slate-700 flex items-center gap-2">
+                        <span class="text-base shrink-0">💡</span>
+                        <div class="leading-relaxed">
+                            @if ($mealComparison['hasPrevData'])
+                                @if ($mealComparison['mealExpenseDiff'] < 0)
+                                    পূর্ববর্তী মাস <strong>({{ $mealComparison['prevMonthName'] }})</strong>-এর তুলনায়
+                                    চলতি মাসে মিল খরচ
+                                    <strong>৳{{ number_format(abs($mealComparison['mealExpenseDiff']), 2) }}
+                                        ({{ abs($mealComparison['mealExpensePct']) }}%) সাশ্রয়</strong> হয়েছে এবং মিল
+                                    রেট <strong>৳{{ number_format(abs($mealComparison['mealRateDiff']), 2) }}</strong>
+                                    কমেছে।
+                                @elseif ($mealComparison['mealExpenseDiff'] > 0)
+                                    পূর্ববর্তী মাস <strong>({{ $mealComparison['prevMonthName'] }})</strong>-এর তুলনায়
+                                    চলতি মাসে মিল খরচ
+                                    <strong>৳{{ number_format($mealComparison['mealExpenseDiff'], 2) }}
+                                        ({{ abs($mealComparison['mealExpensePct']) }}%) বৃদ্ধি</strong> পেয়েছে। মিল
+                                    সংখ্যা <strong>{{ abs($mealComparison['totalMealsDiff']) }} টি
+                                        {{ $mealComparison['totalMealsDiff'] > 0 ? 'বেশি' : 'কম' }}</strong> হয়েছে।
+                                @else
+                                    পূর্ববর্তী মাস <strong>({{ $mealComparison['prevMonthName'] }})</strong> এবং চলতি
+                                    মাসে মিলের মোট খরচ সমান রয়েছে।
+                                @endif
+                            @else
+                                পূর্ববর্তী মাস <strong>({{ $mealComparison['prevMonthName'] }})</strong>-এর কোনো মিল বা
+                                খরচের ডেটা পাওয়া যায়নি। পরবর্তী মাসগুলোতে সিস্টেম স্বয়ংক্রিয়ভাবে বিস্তারিত তুলনা
+                                প্রদর্শন করবে।
+                            @endif
+                        </div>
+                    </div>
+                </div>
 
                 @if (
                     $totalBalanceWarningThreshold !== null &&
@@ -638,7 +999,20 @@
                                                         class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">
                                                         {{ substr($row['name'], 0, 1) }}
                                                     </div>
-                                                    <span class="font-bold text-slate-700">{{ $row['name'] }}</span>
+                                                    <div class="min-w-0">
+                                                        <span
+                                                            class="block font-bold text-slate-700">{{ $row['name'] }}</span>
+                                                        @if (
+                                                            $balanceAlertComment &&
+                                                                $mess?->balance_alert_threshold !== null &&
+                                                                $row['balance'] < (float) $mess->balance_alert_threshold)
+                                                            <span
+                                                                class="mt-1 inline-flex max-w-[220px] items-center rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold leading-tight text-amber-800"
+                                                                title="{{ $balanceAlertComment }}">
+                                                                ! {{ $balanceAlertComment }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <a href="{{ route('members.edit', $row['id']) }}"
@@ -729,6 +1103,8 @@
                         </div>
                     </div>
                 @endif
+
+                <x-developer-card />
             </main>
         </div>
     </div>

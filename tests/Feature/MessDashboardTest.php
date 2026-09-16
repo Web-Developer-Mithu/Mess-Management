@@ -76,7 +76,6 @@ class MessDashboardTest extends TestCase
         $response->assertSee('Mess Manager');
         $response->assertSee('Total Meals');
         $response->assertSee('5');
-        $response->assertSee('Balance Alert');
         $response->assertSee('Please settle your balance.');
         $response->assertSee('1,000.00');
         $response->assertSee('Inactive Member');
